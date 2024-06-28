@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "582328242678",
+    "project_id": "vivero-1c9e6",
+    "storage_bucket": "vivero-1c9e6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:582328242678:android:11a8384769ee2c3aa5f7d7",
+        "android_client_info": {
+          "package_name": "com.example.vivero"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfB4fDk9X_-lWLnAXHgI2expK_LDOY6KQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
