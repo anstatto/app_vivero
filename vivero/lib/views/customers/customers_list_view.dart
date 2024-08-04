@@ -52,7 +52,7 @@ class _CustomerListViewState extends State<CustomerListView> {
     }
   }
 
-  void _navigateAndCreateCostumer() async {
+  void _navigateAndCreateCustomer() async {
     var result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CustomerCreateView()),
@@ -67,7 +67,7 @@ class _CustomerListViewState extends State<CustomerListView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Clientes'),
-        backgroundColor: Colors.green,
+        backgroundColor: themeColor,
         actions: [
           _isLoading
               ? const CircularProgressIndicator(color: Colors.white)
@@ -96,9 +96,41 @@ class _CustomerListViewState extends State<CustomerListView> {
         ),
       ),
       backgroundColor: Colors.green.shade100,
-      body: _buildCustomerList(),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 600),
+              child: Card(
+                elevation: 8.0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Lista de Clientes',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildCustomerList(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _navigateAndCreateCostumer,
+        onPressed: _navigateAndCreateCustomer,
         backgroundColor: themeColor,
         child: const Icon(Icons.add),
       ),
@@ -110,6 +142,7 @@ class _CustomerListViewState extends State<CustomerListView> {
       return const Center(child: Text('No hay clientes disponibles'));
     }
     return ListView.builder(
+      shrinkWrap: true,
       itemCount: _customers!.length,
       itemBuilder: (context, index) {
         final customer = _customers![index];
@@ -170,7 +203,6 @@ class _CustomerListViewState extends State<CustomerListView> {
   );
 }
 
-
   void _confirmDeleteCustomer(Customer customer) {
     showDialog(
       context: context,
@@ -222,12 +254,10 @@ class _CustomerListViewState extends State<CustomerListView> {
   void _filterCustomers() {
     final String searchTerm = _filter.text.toLowerCase();
     if (searchTerm.isEmpty) {
-      // Si el campo de búsqueda está vacío, mostrar todos los clientes
       setState(() {
-        _getCustomers(); // Volver a cargar todos los clientes
+        _getCustomers();
       });
     } else {
-      // Filtrar los clientes basándose en el término de búsqueda
       setState(() {
         _customers = _customers!
             .where((customer) =>

@@ -1,6 +1,8 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vivero/firebase_options.dart';
+import 'package:vivero/models/user.dart';
+import 'package:vivero/providers/user_provider.dart';
 import 'package:vivero/views/customers/customer_create.dart';
 import 'package:vivero/views/customers/customers_list_view.dart';
 import 'package:vivero/views/facturas/invoice_create.dart';
@@ -10,14 +12,21 @@ import 'package:vivero/views/products/product_create.dart';
 import 'package:vivero/views/products/products_list_view.dart';
 import 'package:vivero/views/login/login_view.dart';
 import 'package:vivero/views/settings/settings_view.dart';
+import 'package:vivero/views/settings/user_list_view.dart';
 import 'package:vivero/views/settings/users_view.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => UserProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -87,7 +96,21 @@ class MyApp extends StatelessWidget {
         '/invoice/create': (context) => const InvoiceScreen(),
         '/invoices': (context) => const InvoiceFilterScreen(),
         '/configuraciones': (context) => const SettingsView(),
-        '/users': (context) => const RegisterView(),
+        '/consulta/usuario': (context) => const UserListView(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/users') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          return MaterialPageRoute(
+            builder: (context) {
+              return RegisterView(
+                user: args?['user'] as User?,
+                onSave: args?['onSave'] as Function?,
+              );
+            },
+          );
+        }
+        return null;
       },
     );
   }

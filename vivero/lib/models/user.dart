@@ -1,16 +1,18 @@
 class User {
   final String id;
   final String name;
-  final String email;
+  final String? email;
+  final String password;
   final bool isActive;
-  final Map<String, bool> permissions;
+  final Map<String, Map<String, bool>> modulePermissions;
 
   User({
     required this.id,
     required this.name,
-    required this.email,
+    this.email,
+    required this.password,
     this.isActive = true,
-    required this.permissions,
+    required this.modulePermissions,
   });
 
   Map<String, dynamic> toMap() {
@@ -18,18 +20,27 @@ class User {
       'id': id,
       'name': name,
       'email': email,
+      'password': password,
       'isActive': isActive,
-      'permissions': permissions,
+      'modulePermissions': modulePermissions,
     };
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
+    Map<String, Map<String, bool>> permissions = {};
+    if (map['modulePermissions'] != null) {
+      map['modulePermissions'].forEach((module, perms) {
+        permissions[module] = Map<String, bool>.from(perms);
+      });
+    }
+
     return User(
-      id: map['id'],
-      name: map['name'],
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
       email: map['email'],
-      isActive: map['isActive'],
-      permissions: Map<String, bool>.from(map['permissions']),
+      password: map['password'] ?? '',
+      isActive: map['isActive'] ?? true,
+      modulePermissions: permissions,
     );
   }
 
@@ -37,15 +48,17 @@ class User {
     String? id,
     String? name,
     String? email,
+    String? password,
     bool? isActive,
-    Map<String, bool>? permissions,
+    Map<String, Map<String, bool>>? modulePermissions,
   }) {
     return User(
       id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
+      password: password ?? this.password,
       isActive: isActive ?? this.isActive,
-      permissions: permissions ?? this.permissions,
+      modulePermissions: modulePermissions ?? this.modulePermissions,
     );
   }
 }

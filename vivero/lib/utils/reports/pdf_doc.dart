@@ -17,6 +17,7 @@ Future<void> generatePDFAndShare(Invoice invoice) async {
   pdf.addPage(
     pw.Page(
       build: (pw.Context context) {
+        final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
@@ -34,7 +35,7 @@ Future<void> generatePDFAndShare(Invoice invoice) async {
             pw.SizedBox(height: 20),
             pw.Text('Factura #${invoice.id}',
                 style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
-            pw.Text('Fecha: ${DateFormat('yyyy-MM-dd').format(invoice.date)}',
+            pw.Text('Fecha: ${formatter.format(invoice.date.toDate())}',
                 style: const pw.TextStyle(fontSize: 18)),
             pw.SizedBox(height: 10),
             pw.Text('Información del Cliente:',

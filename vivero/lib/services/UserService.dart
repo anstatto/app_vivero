@@ -13,13 +13,18 @@ class UserService {
     }
   }
 
-  // Consultar usuarios
+  // Consultar usuarios activos
   Future<List<User>> fetchUsers() async {
     try {
-      QuerySnapshot querySnapshot = await _firestore.collection('users').get();
-      return querySnapshot.docs.map((doc) => User.fromMap(doc.data() as Map<String, dynamic>)).toList();
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('isActive', isEqualTo: true)
+          .get();
+      return querySnapshot.docs
+          .map((doc) => User.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
     } catch (e) {
-      print(e.toString());
+      print('Error al consultar usuarios activos: $e');
       return [];
     }
   }
@@ -39,6 +44,28 @@ class UserService {
       await _firestore.collection('users').doc(id).update({'isActive': false});
     } catch (e) {
       print(e.toString());
+    }
+  }
+
+  // Login usuario
+  Future<User?> loginUser(String username, String password) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('name', isEqualTo: username)
+          .where('password', isEqualTo: password)
+          .where('isActive', isEqualTo: true)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return User.fromMap(
+            querySnapshot.docs.first.data() as Map<String, dynamic>);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error al hacer login: $e');
+      return null;
     }
   }
 }

@@ -8,8 +8,7 @@ class InvoiceService {
 
   CollectionReference get _invoicesCol => _db.collection('invoices');
 
-  DocumentReference get _counterRef =>
-      _db.collection('counters').doc('invoice');
+  DocumentReference get _counterRef => _db.collection('counters').doc('invoice');
 
   InvoiceService();
 
@@ -37,7 +36,16 @@ class InvoiceService {
 
   Future<void> addInvoice(Invoice invoice) async {
     try {
-      await _invoicesCol.doc(invoice.id).set(invoice.toMap());
+      String generatedId = await getNextInvoiceId();
+      invoice = invoice.copyWith(id: generatedId, date: Timestamp.now());
+
+      DocumentReference docRef = _invoicesCol.doc();
+      await docRef.set(invoice.toMap());
+      invoice = invoice.copyWith(firebaseDocId: docRef.id);
+
+      await docRef.update(invoice.toMap());
+
+      logger.d("Invoice added with ID: ${invoice.id}");
     } catch (e) {
       logger.e("Error adding invoice: $e");
       throw Exception("Error adding invoice");
@@ -46,7 +54,10 @@ class InvoiceService {
 
   Future<void> updateInvoice(Invoice invoice) async {
     try {
-      await _invoicesCol.doc(invoice.id).set(invoice.toMap());
+      if (invoice.firebaseDocId == null) {
+        throw Exception("Document ID is null");
+      }
+      await _invoicesCol.doc(invoice.firebaseDocId).set(invoice.toMap());
       logger.d("Invoice updated with ID: ${invoice.id}");
     } catch (e) {
       logger.e("Error updating invoice: $e");
@@ -54,10 +65,10 @@ class InvoiceService {
     }
   }
 
-  Future<void> deleteInvoice(String id) async {
+  Future<void> deleteInvoice(String firebaseDocId) async {
     try {
-      await _invoicesCol.doc(id).delete();
-      logger.d("Invoice deleted with ID: $id");
+      await _invoicesCol.doc(firebaseDocId).delete();
+      logger.d("Invoice deleted with Firestore ID: $firebaseDocId");
     } catch (e) {
       logger.e("Error deleting invoice: $e");
       throw Exception("Error deleting invoice");
@@ -67,9 +78,14 @@ class InvoiceService {
   Future<Set<Invoice>> filterInvoicesByDateAndIdAndCustomer(
       String startDate, String endDate, String id, String customerName) async {
     try {
+      DateTime startDateTime = DateTime.parse(startDate);
+      DateTime endDateTime = DateTime.parse(endDate);
+
+      logger.d("Filter Start Date: $startDateTime, End Date: $endDateTime, ID: $id, Customer Name: $customerName");
+
       Query query = _invoicesCol
-          .where('date', isGreaterThanOrEqualTo: startDate)
-          .where('date', isLessThanOrEqualTo: endDate);
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDateTime))
+          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDateTime));
 
       if (id.isNotEmpty) {
         query = query.where('id', isEqualTo: id);
@@ -80,6 +96,8 @@ class InvoiceService {
       }
 
       final QuerySnapshot querySnapshot = await query.get();
+
+      logger.d("Number of invoices found: ${querySnapshot.docs.length}");
 
       if (querySnapshot.docs.isEmpty) {
         logger.w("No invoices found.");

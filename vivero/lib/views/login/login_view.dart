@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vivero/services/UserService.dart';
+import 'package:vivero/models/user.dart';
+import 'package:vivero/providers/user_provider.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -11,23 +15,38 @@ class _LoginViewState extends State<LoginView> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final UserService _userService = UserService();
 
-  final Map<String, String> _users = {
-    'admin': '1234',
-    'user': '1234',
+  final Map<String, String> _defaultUsers = {
+    'admin': '0207',
   };
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState?.validate() ?? false) {
       String username = _usernameController.text;
       String password = _passwordController.text;
 
-      if (_users.containsKey(username) && _users[username] == password) {
+      if (_defaultUsers.containsKey(username) &&
+          _defaultUsers[username] == password) {
+        Provider.of<UserProvider>(context, listen: false).setUser(
+          User(
+              id: 'admin',
+              name: 'Administrador',
+              password: password,
+              modulePermissions: {}),
+          isAdmin: true,
+        );
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid username or password')),
-        );
+        User? user = await _userService.loginUser(username, password);
+        if (user != null) {
+          Provider.of<UserProvider>(context, listen: false).setUser(user);
+          Navigator.pushReplacementNamed(context, '/home', arguments: user);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid username or password')),
+          );
+        }
       }
     }
   }
@@ -58,7 +77,7 @@ class _LoginViewState extends State<LoginView> {
           gradient: LinearGradient(
             colors: [
               Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primaryContainer, // Updated color
+              Theme.of(context).colorScheme.primaryContainer,
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -90,7 +109,7 @@ class _LoginViewState extends State<LoginView> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _usernameController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Username',
                           border: OutlineInputBorder(),
                         ),
@@ -104,7 +123,7 @@ class _LoginViewState extends State<LoginView> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Password',
                           border: OutlineInputBorder(),
                         ),
